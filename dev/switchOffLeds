@@ -1,0 +1,2 @@
+#!/bin/sh
+ampy -p /dev/ttyUSB0 run switchOffLeds.py
