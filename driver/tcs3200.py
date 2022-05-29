@@ -34,8 +34,8 @@ class TCS3200(object):
     
     Default connections:
     TCS3200 WeMos GPIO
-      S0     D2   21 
-      S1     D1   22
+      S0     D3   17 
+      S1     D4   16
       S2     D8   05
       S3     D5   18
       OUT    D6   19

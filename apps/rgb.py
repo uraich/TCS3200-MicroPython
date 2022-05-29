@@ -9,7 +9,7 @@ from tcs3200 import TCS3200
 from neopixel import NeoPixel
 
 # create an TCS3200 object
-tcs3200 = TCS3200(OUT=19, S2=5, S3=18, S0=21, S1=22, LED=23)
+tcs3200 = TCS3200(OUT=19, S2=5, S3=18, S0=17, S1=15, LED=23)
 
 # set debugging on
 tcs3200.debugging=tcs3200.ON

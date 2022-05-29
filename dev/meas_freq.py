@@ -38,8 +38,8 @@ class TCS3200(object):
     
     Default connections:
     TCS3200 WeMos GPIO
-      S0     D2   21 
-      S1     D1   22
+      S0     D3   17 
+      S1     D4   16
       S2     D8   05
       S3     D5   18
       OUT    D6   19
@@ -236,7 +236,7 @@ class TCS3200(object):
 # This part is the main project and should later go into a separate file
 
 # create an TCS3200 object
-tcs3200 = TCS3200(OUT=19, S2=5, S3=18, S0=21, S1=22, LED=23)
+tcs3200 = TCS3200(OUT=19, S2=5, S3=18, S0=17, S1=16, LED=23)
 
 # set debugging on
 tcs3200.debugging=tcs3200.ON

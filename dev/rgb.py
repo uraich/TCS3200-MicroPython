@@ -1,12 +1,5 @@
-# calibration.py: The value for a color component is calculated with the following formula:
-# rgb = max * (Fv -Fb) / (Fw -Fb) where
-# max is the maximum for each color component. This is generally 0xff or 255
-# Fv is the frequency measured to the color component
-# Fw is the frequency when measuring a white target
-# Fb is the frequency when measuring a black target
-# Before measuring the frequency of a color component and calculating the rgb value of a colored target
-# we must measure the rgb frequencies for a black and a white target first
-# These calibration values are stored in the _freq_black and _freq_white arrays. 
+# rgb.py: In addition to the calibration, the rgb value of colored targets
+# is now measured in an endless loop
 #
 # Copyright (c) U. Raich
 # Written for the course on the Internet of Things at the
@@ -14,6 +7,7 @@
 # The program is released under the MIT licence
 
 from machine import Pin,Timer
+from neopixel import NeoPixel
 import utime as time
 
 class TCS3200(object):
@@ -116,6 +110,7 @@ class TCS3200(object):
         # variables containing the calibration
         self._freq_black = [0]*4
         self._freq_white = [0]*4
+        self._max_comp=255
         
     @property
     def debugging(self) :
@@ -284,7 +279,37 @@ class TCS3200(object):
         duration = self._end_tick - self._start_tick  # measurement duration
         frequency = 1000000 * self._cycles/duration   # duration is measured in us
         return frequency
+    
+    def calc_rgb_comp(self,comp,freq):
+        return  (freq - self._freq_black[comp]) / (self._freq_white[comp] - self._freq_black[comp])
 
+    @property
+    # gets the maximum value for a color component
+    def max_comp(self):
+        return self._max_comp
+    
+    @max_comp.setter
+    # sets the maximum value for a color component
+    def max_comp(self,value):
+        self._max_comp = value
+        
+    @property
+    # Measure the rgb values as well as the intensity value (no filter)
+    def rgb(self):
+        freqs = self.meas_freqs
+        if self._debug:
+            print("Measured Frequencies: red: {:f}, green: {:f}, blue: {:f}, intensity: {:f}".format(
+                freqs[0],freqs[1],freqs[2],freqs[3]))
+        argb = [None]*4
+        for i in range(4):
+            argb[i]=int(self._max_comp*self.calc_rgb_comp(i,freqs[i]))
+            if argb[i] < 0:
+                argb[i] = 0
+        if self._debug:
+            print("rgb array:",argb)
+        return argb
+                        
+        
     # This is the callback function that measures the time taken by a predefined no of cycles of the out signal
     def _cbf(self,src):
         t = time.ticks_us()
@@ -314,6 +339,12 @@ tcs3200.debugging=tcs3200.ON
 # switch the LEDs on
 tcs3200.led = tcs3200.ON
 
+# create a neopixel object with 7 LEDs
+NEOPIXEL_PIN=26
+NO_OF_LEDS=7
+
+neoPixel = NeoPixel(Pin(NEOPIXEL_PIN),NO_OF_LEDS)
+
 # Set the frequency divider to 2% and read it back
 tcs3200.freq_divider=tcs3200.TWO_PERCENT
 print(tcs3200.freq_divider)
@@ -330,4 +361,9 @@ print("Calibration frequencies for black: ",black_freq)
 white_freq = tcs3200.calib(tcs3200.WHITE)
 print("Calibration frequencies for white: ",white_freq)
 
-
+while True:
+    rgb = tcs3200.rgb
+    for i in range(NO_OF_LEDS):
+        neoPixel[i] = (rgb[0]//8,rgb[1]//8,rgb[2]//8) # limit the brightness through division by 8
+    neoPixel.write()
+    time.sleep(1)
