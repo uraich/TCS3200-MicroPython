@@ -329,4 +329,19 @@ class TCS3200(object):
         self._OUT.irq(trigger=Pin.IRQ_RISING,handler=None)
         # raise the timeour exception
         raise Exception("Measurement Timeout!")
+    
+    # callback to stop data taking 
+    def setStopFlag(self,t):
+        self.stopFlag=True
         
+    # This is a test function that reads the OUT signal for 100 ms at a sampling frequency of 10 samples per ms
+    # It prints the current state of the OUT signal such that you can plot the signal
+    def testOut(self):
+        self.values = []
+        self.stopFlag = False
+        # start a timer for 100 ms
+        self._tim.init(period=100, mode=Timer.ONE_SHOT, callback=self.setStopFlag)
+        while not self.stopFlag:
+            self.values.append(self._OUT.value())
+            time.sleep_us(100)
+        return self.values
